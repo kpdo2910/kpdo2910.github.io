@@ -1,0 +1,75 @@
+---
+import Icon from '../../components/Icon.astro';
+import PostRow from '../../components/PostRow.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import { PROJECTS } from '../../data/projects.js';
+import { formatMonthYear } from '../../i18n/format.js';
+import { localeStaticPaths, localizePath, useTranslations } from '../../i18n/utils.js';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPosts } from '../../lib/posts.js';
+
+export function getStaticPaths() {
+  return localeStaticPaths();
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const posts = await getPosts(locale);
+const [latest, ...older] = posts;
+const recent = older.slice(0, 2);
+const featured = PROJECTS.filter((project) => project.featured);
+---
+<BaseLayout locale={locale} description={t.home.description} path="/" active="home" splash>
+  <section class="home-hero">
+    <p class="mono label home-kicker">{t.home.kicker}</p>
+    <h1 class="home-greeting">{t.home.greeting}</h1>
+    <div class="ui home-actions">
+      <a href={localizePath('/about/', locale)} class="sbtn sbtn-primary">
+        <Icon name="user" />
+        <span>{t.home.aboutMe}</span>
+        <Icon name="arrow-right" size={13} />
+      </a>
+    </div>
+  </section>
+
+  {
+    latest && (
+      <section id="writing" class="home-writing" aria-labelledby="writing-title">
+        <h2 id="writing-title" class="mono label section-label">
+          {t.home.writing}
+        </h2>
+        <ol class="tl">
+          <PostRow
+            post={latest}
+            locale={locale}
+            variant="latest"
+            label={`${t.home.latest} · ${formatMonthYear(latest.entry.data.date, locale)}`}
+            headingLevel={3}
+            first
+            last={recent.length === 0}
+          />
+          {recent.map((post, index) => (
+            <PostRow post={post} locale={locale} variant="compact" headingLevel={3} last={index === recent.length - 1} />
+          ))}
+        </ol>
+        <a href={localizePath('/blog/', locale)} class="ui ulink tl-more">
+          <span>{t.home.allPosts(posts.length)}</span>
+          <Icon name="arrow-right" />
+        </a>
+      </section>
+    )
+  }
+
+  <section id="projects" class="home-projects" aria-labelledby="projects-title">
+    <div class="section-head">
+      <h2 id="projects-title" class="mono label section-label">{t.home.projects}</h2>
+      <a href={localizePath('/projects/', locale)} class="ui ulink">
+        <span>{t.home.allProjects}</span>
+        <Icon name="arrow-right" />
+      </a>
+    </div>
+    <div class="card-grid">
+      {featured.map((project) => <ProjectCard project={project} locale={locale} />)}
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,289 @@
+/* The CV page (src/pages/[...locale]/cv.astro): an A4 sheet on screen, plain pages in the PDF.
+   The PDF margins and page footer come from integrations/cv-pdf.js. Inter and Noto Sans JP are
+   loaded up to weight 500, so nothing here goes bolder than that. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  print-color-adjust: exact;
+}
+
+body {
+  margin: 0;
+  background: #E9E2D8;
+  color: var(--fg);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+ul,
+dl,
+dd {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.cv-toolbar {
+  display: flex;
+  justify-content: center;
+  padding: 20px 16px 0;
+}
+
+.cv-toolbar a {
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.cv {
+  width: 210mm;
+  min-height: 297mm;
+  margin: 20px auto 40px;
+  padding: 14mm 16mm 16mm;
+  background: #fff;
+  box-shadow:
+    0 1px 3px rgba(38, 33, 28, 0.1),
+    0 12px 32px rgba(38, 33, 28, 0.12);
+}
+
+/* ---------- Header ---------- */
+
+.cv-head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.cv-name {
+  font-family: var(--font-serif);
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.cv-headline {
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+.cv-updated,
+.cv-contacts,
+.cv-date,
+.cv-tags,
+.cv-section h2 {
+  font-family: var(--font-mono);
+}
+
+.cv-updated {
+  font-size: 10px;
+  color: var(--soft);
+  text-align: right;
+}
+
+.cv-contacts {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 18px;
+  padding: 0;
+  list-style: none;
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+/* ---------- Sections ---------- */
+
+.cv-section {
+  margin-top: 14px;
+}
+
+.cv-section h2 {
+  margin-bottom: 6px;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  break-after: avoid;
+}
+
+.cv-summary + .cv-summary {
+  margin-top: 4px;
+}
+
+.cv-pairs {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 3px 16px;
+}
+
+.cv-pairs dt {
+  font-weight: 500;
+}
+
+.cv-pairs dd {
+  color: var(--muted);
+}
+
+.cv-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.cv-date {
+  flex-shrink: 0;
+  font-size: 10.5px;
+  color: var(--soft);
+  white-space: nowrap;
+}
+
+.cv-muted {
+  color: var(--muted);
+}
+
+/* ---------- Experience ---------- */
+
+.cv-job + .cv-job {
+  margin-top: 12px;
+}
+
+.cv-item + .cv-item {
+  margin-top: 6px;
+}
+
+/* Keep a company's name with what follows it. */
+.cv-job-head {
+  break-inside: avoid;
+  break-after: avoid;
+}
+
+.cv-company {
+  font-family: var(--font-serif);
+  font-size: 16.5px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.cv-role {
+  font-weight: 500;
+  color: var(--accent);
+}
+
+/* A long project may carry on over the page break, but never right after its title. */
+.cv-project {
+  margin-top: 7px;
+  padding-left: 12px;
+  border-left: 2px solid var(--accent-soft2);
+}
+
+.cv-project > .cv-row,
+.cv-project-summary {
+  break-after: avoid;
+}
+
+.cv-title-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 10px;
+  min-width: 0;
+}
+
+.cv-project-title,
+.cv-item-title {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ---------- Education, certificates, languages ---------- */
+
+.cv-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 32px;
+  break-inside: avoid;
+}
+
+.cv-tags {
+  font-size: 10px;
+  color: var(--soft);
+}
+
+.cv-bullets {
+  margin-top: 3px;
+  padding-left: 16px;
+}
+
+.cv-bullets li {
+  break-inside: avoid;
+}
+
+.cv-bullets li::marker {
+  color: var(--accent);
+}
+
+/* ---------- Phones (the /cv/ page itself) ---------- */
+
+/* `screen` only: an A4 page is narrower than 840px too, and the PDF keeps the desktop layout. */
+@media screen and (max-width: 840px) {
+  .cv {
+    width: auto;
+    min-height: 0;
+    margin: 16px 0 0;
+    padding: 24px 16px 40px;
+    box-shadow: none;
+  }
+
+  .cv-row {
+    flex-wrap: wrap;
+    gap: 0 12px;
+  }
+
+  .cv-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------- PDF ---------- */
+
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .cv-toolbar {
+    display: none;
+  }
+
+  .cv {
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+}

@@ -1,0 +1,96 @@
+---
+import Icon from '../../../components/Icon.astro';
+import PostRow from '../../../components/PostRow.astro';
+import { BLOG_TOPICS } from '../../../data/site.js';
+import { localeStaticPaths, localizePath, useTranslations } from '../../../i18n/utils.js';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getPosts } from '../../../lib/posts.js';
+
+export function getStaticPaths() {
+  return localeStaticPaths();
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const posts = await getPosts(locale);
+const usedTags = new Set(posts.flatMap((post) => post.entry.data.tags));
+const topics = (BLOG_TOPICS ?? [...usedTags]).filter((tag) => usedTags.has(tag));
+---
+<BaseLayout locale={locale} title={t.blog.title} description={t.blog.intro} path="/blog/" active="blog">
+  <section class="page-head blog-head">
+    <div class="title-row">
+      <h1 class="page-title">{t.blog.title}</h1>
+      <a href={localizePath('/feed.xml', locale)} class="ui sbtn">
+        <Icon name="rss" />
+        <span>RSS</span>
+      </a>
+    </div>
+    <p class="page-intro">{t.blog.intro}</p>
+    {
+      topics.length > 0 && (
+        <div class="chips filter" role="group" aria-label={t.blog.filterLabel}>
+          <Icon name="tag" size={13} class="filter-icon" />
+          <button type="button" class="chip chip-btn is-active" aria-pressed="true" data-filter="all">
+            {t.blog.all}
+          </button>
+          {topics.map((tag) => (
+            <button type="button" class="chip chip-btn" aria-pressed="false" data-filter={tag}>
+              {tag}
+            </button>
+          ))}
+        </div>
+      )
+    }
+  </section>
+
+  <section class="blog-list">
+    {
+      posts.length > 0 ? (
+        <ol class="tl" data-post-list>
+          {posts.map((post, index) => (
+            <PostRow post={post} locale={locale} first={index === 0} last={index === posts.length - 1} />
+          ))}
+        </ol>
+      ) : (
+        <p class="empty">{t.blog.empty}</p>
+      )
+    }
+  </section>
+</BaseLayout>
+
+<script>
+  // Topic filter. `/blog/?tag=flutter` opens with that topic selected.
+  const buttons = [...document.querySelectorAll('[data-filter]')];
+  const rows = [...document.querySelectorAll('[data-post-list] > [data-tags]')];
+
+  function applyFilter(tag) {
+    const visible = [];
+    for (const row of rows) {
+      const show = tag === 'all' || JSON.parse(row.dataset.tags).includes(tag);
+      row.hidden = !show;
+      row.classList.remove('tl-first', 'tl-last');
+      if (show) visible.push(row);
+    }
+    // The timeline line starts at the first visible row and stops at the last.
+    visible[0]?.classList.add('tl-first');
+    visible.at(-1)?.classList.add('tl-last');
+
+    for (const button of buttons) {
+      const active = button.dataset.filter === tag;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-pressed', String(active));
+    }
+
+    const url = new URL(window.location.href);
+    if (tag === 'all') url.searchParams.delete('tag');
+    else url.searchParams.set('tag', tag);
+    history.replaceState(null, '', url);
+  }
+
+  for (const button of buttons) {
+    button.addEventListener('click', () => applyFilter(button.dataset.filter));
+  }
+
+  const initial = new URLSearchParams(window.location.search).get('tag');
+  if (initial && buttons.some((button) => button.dataset.filter === initial)) applyFilter(initial);
+</script>

@@ -1,0 +1,74 @@
+---
+import Icon from './Icon.astro';
+import LangSwitcher from './LangSwitcher.astro';
+import ThemeToggle from './ThemeToggle.astro';
+import { NAV, SITE } from '../data/site.js';
+import { localizePath, useTranslations } from '../i18n/utils.js';
+
+// `active` highlights a section; `current` is false on pages below it (a blog post),
+// which keep the highlight but aren't the section page itself.
+// The bar sticks to the top of the window; on phones it slides away while scrolling down
+// and comes back on the way up.
+const { locale, path, active, current = true } = Astro.props;
+const t = useTranslations(locale);
+---
+<div class="site-bar" data-site-bar>
+  <header class="hdr">
+    <a href={localizePath('/', locale)} class="brand">{SITE.name}</a>
+    <nav class="ui nav-desktop" aria-label={t.nav.label}>
+      {
+        NAV.map((item) => (
+          <a
+            href={localizePath(item.path, locale)}
+            class:list={['nav-link', { 'is-active': active === item.key }]}
+            aria-current={active === item.key && current ? 'page' : undefined}
+          >
+            <Icon name={item.icon} size={15} />
+            <span>{t.nav[item.key]}</span>
+          </a>
+        ))
+      }
+    </nav>
+    <div class="ui hdr-controls">
+      <LangSwitcher locale={locale} path={path} />
+      <ThemeToggle locale={locale} />
+    </div>
+  </header>
+</div>
+
+<script>
+  const bar = document.querySelector('[data-site-bar]');
+  // Ignore jitter: the direction only counts after this many pixels.
+  const THRESHOLD = 6;
+  let lastY = window.scrollY;
+  let queued = false;
+
+  function update() {
+    queued = false;
+    const y = Math.max(window.scrollY, 0);
+    bar.classList.toggle('is-scrolled', y > 0);
+
+    // `is-hidden` only has an effect at phone width (global.css).
+    const delta = y - lastY;
+    if (y <= bar.offsetHeight) {
+      bar.classList.remove('is-hidden');
+      lastY = y;
+    } else if (Math.abs(delta) >= THRESHOLD) {
+      bar.classList.toggle('is-hidden', delta > 0);
+      lastY = y;
+    }
+  }
+
+  window.addEventListener(
+    'scroll',
+    () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(update);
+    },
+    { passive: true },
+  );
+  // Keyboard users tabbing into the bar should be able to see it.
+  bar.addEventListener('focusin', () => bar.classList.remove('is-hidden'));
+  update();
+</script>

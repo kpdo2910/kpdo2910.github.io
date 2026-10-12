@@ -1,0 +1,78 @@
+---
+import Dialog from './Dialog.astro';
+import Icon from './Icon.astro';
+import { EXPERIENCE } from '../data/experience.js';
+import { formatPeriod } from '../i18n/format.js';
+import { localized, useTranslations } from '../i18n/utils.js';
+
+// The card shows the short summary; clicking it opens a dialog with the rest, like the
+// experience cards on the About page.
+const { project, locale } = Astro.props;
+const t = useTranslations(locale);
+const dialogId = `project-${project.id}`;
+const title = localized(project.title, locale);
+const status = project.status ? t.projects.status[project.status] : null;
+// One company id, or a list (oldest first) for a project that carried on at the next job.
+const company = [project.company]
+  .flat()
+  .map((id) => localized(EXPERIENCE.find((job) => job.id === id)?.company, locale))
+  .filter(Boolean)
+  .join(' → ');
+const period = project.start ? formatPeriod(project.start, project.end, t.about.present, locale) : null;
+const highlights = localized(project.highlights, locale) ?? [];
+const links = (project.links ?? []).map((link) => ({
+  label: link.label ?? t.links[link.type] ?? link.url,
+  url: link.url,
+}));
+---
+<button type="button" class="card" aria-haspopup="dialog" aria-controls={dialogId} data-dialog-open={dialogId}>
+  {
+    status && (
+      <span class="card-top">
+        <span class="badge">{status}</span>
+      </span>
+    )
+  }
+  <span class="card-title">{title}</span>
+  <span class="card-desc">{localized(project.summary, locale)}</span>
+  <span class="ui card-more">
+    <span>{t.readMore}</span>
+    <Icon name="arrow-right" size={13} />
+  </span>
+</button>
+
+<Dialog id={dialogId} title={title} locale={locale} links={links}>
+  <Fragment slot="meta">
+    {status && <span class="badge modal-badge">{status}</span>}
+    {
+      company && (
+        <span class="mono xp-place">
+          <Icon name="briefcase" size={12} />
+          <span>{company}</span>
+        </span>
+      )
+    }
+    {
+      period && (
+        <span class="mono xp-date modal-date">
+          <Icon name="calendar" size={12} />
+          <em>{period}</em>
+        </span>
+      )
+    }
+  </Fragment>
+  <span class="chips">{project.tags.map((tag) => <span class="chip">{tag}</span>)}</span>
+  <p class="modal-text">{localized(project.desc, locale)}</p>
+  {
+    highlights.length > 0 && (
+      <div class="modal-section">
+        <h4 class="mono label modal-label">{t.highlights}</h4>
+        <ul class="modal-bullets">
+          {highlights.map((highlight) => (
+            <li>{highlight}</li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
+</Dialog>

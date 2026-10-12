@@ -1,0 +1,137 @@
+---
+import { render } from 'astro:content';
+import BackToTop from '../../../components/BackToTop.astro';
+import Icon from '../../../components/Icon.astro';
+import PullToGoBack from '../../../components/PullToGoBack.astro';
+import { BLOG_TOPICS } from '../../../data/site.js';
+import { formatDate } from '../../../i18n/format.js';
+import { LOCALES } from '../../../i18n/ui.js';
+import { languageName, localeParam, localizePath, useTranslations } from '../../../i18n/utils.js';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getPosts } from '../../../lib/posts.js';
+
+// Every post gets a page in every language; untranslated ones show the original.
+export async function getStaticPaths() {
+  const paths = [];
+  for (const locale of LOCALES) {
+    const posts = await getPosts(locale);
+    posts.forEach((post, index) => {
+      paths.push({
+        params: { locale: localeParam(locale), slug: post.slug },
+        props: { locale, post, newer: posts[index - 1], older: posts[index + 1] },
+      });
+    });
+  }
+  return paths;
+}
+
+const { locale, post, newer, older } = Astro.props;
+const t = useTranslations(locale);
+const { title, summary, lead, date, tags } = post.entry.data;
+const { Content } = await render(post.entry);
+
+const path = `/blog/${post.slug}/`;
+const blogUrl = localizePath('/blog/', locale);
+const postUrl = (other) => localizePath(`/blog/${other.slug}/`, locale);
+// Text written in another language than the page gets its own lang attribute.
+const contentLang = post.isFallback ? post.lang : undefined;
+const langOf = (other) => (other.isFallback ? other.lang : undefined);
+const filterable = new Set(BLOG_TOPICS ?? tags);
+---
+<BaseLayout
+  locale={locale}
+  title={title}
+  description={summary}
+  path={path}
+  active="blog"
+  current={false}
+  alternates={post.translations}
+  canonicalPath={post.isFallback ? localizePath(path, post.lang) : undefined}
+  ogType="article"
+>
+  <article class="post">
+    <a href={blogUrl} class="ui ulink post-back">
+      <Icon name="arrow-left" />
+      <span>{t.post.back}</span>
+    </a>
+
+    {post.isFallback && <p class="ui post-note">{t.post.fallback(languageName(post.lang, locale))}</p>}
+
+    <div class="post-meta">
+      <span class="mono post-date">
+        <Icon name="calendar" size={12} />
+        <time datetime={date.toISOString().slice(0, 10)}>{formatDate(date, locale)}</time>
+      </span>
+      {tags.length > 0 && <span class="chips">{tags.map((tag) => <span class="chip">{tag}</span>)}</span>}
+    </div>
+
+    <h1 class="post-title" lang={contentLang} data-hero={`post:${post.slug}`}>
+      {title}
+    </h1>
+    {lead && <p class="post-lead" lang={contentLang}>{lead}</p>}
+    <hr class="post-rule" />
+
+    <div class="prose" lang={contentLang}>
+      <Content />
+    </div>
+
+    {
+      tags.length > 0 && (
+        <div class="chips post-tags">
+          <Icon name="tag" size={13} class="filter-icon" />
+          {tags.map((tag) =>
+            filterable.has(tag) ? (
+              <a href={`${blogUrl}?tag=${encodeURIComponent(tag)}`} class="chip">
+                {tag}
+              </a>
+            ) : (
+              <span class="chip">{tag}</span>
+            ),
+          )}
+        </div>
+      )
+    }
+
+    {
+      (older || newer) && (
+        <nav class="pager" aria-label={t.post.pagerLabel}>
+          {older ? (
+            <a href={postUrl(older)} class="pager-link">
+              <span class="ui pager-dir">
+                <Icon name="arrow-left" size={12} />
+                <span>{t.post.older}</span>
+              </span>
+              <span
+                class="pager-title"
+                lang={langOf(older)}
+                data-hero={`post:${older.slug}`}
+              >
+                {older.entry.data.title}
+              </span>
+            </a>
+          ) : (
+            <span aria-hidden="true"></span>
+          )}
+          {newer && (
+            <a href={postUrl(newer)} class="pager-link pager-next">
+              <span class="ui pager-dir">
+                <span>{t.post.newer}</span>
+                <Icon name="arrow-right" size={12} />
+              </span>
+              <span
+                class="pager-title"
+                lang={langOf(newer)}
+                data-hero={`post:${newer.slug}`}
+              >
+                {newer.entry.data.title}
+              </span>
+            </a>
+          )}
+        </nav>
+      )
+    }
+  </article>
+
+  <BackToTop slot="overlay" locale={locale} />
+  <PullToGoBack slot="overlay" fallback={blogUrl} />
+</BaseLayout>

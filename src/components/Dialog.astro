@@ -1,0 +1,174 @@
+---
+import Icon from './Icon.astro';
+import { useTranslations } from '../i18n/utils.js';
+
+// Detail dialog behind an experience or project card: a centered panel on wide screens, a
+// bottom sheet on phones (drag it down to close). A card opens it with data-dialog-open="<id>".
+// Slots: "meta" (lines under the title), default (body sections).
+// `links`: [{ label, url }] buttons under the title block (company site, store pages…).
+const { id, title, locale, links = [] } = Astro.props;
+const t = useTranslations(locale);
+const titleId = `${id}-title`;
+---
+<dialog id={id} class="modal-dialog" aria-labelledby={titleId}>
+  <div class="ui modal">
+    <div class="modal-bar">
+      <span class="modal-handle" aria-hidden="true"></span>
+      <span class="modal-bar-title" aria-hidden="true">{title}</span>
+      <button type="button" class="modal-close" aria-label={t.close} data-dialog-close>
+        <Icon name="close" size={16} />
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-head">
+        <h3 id={titleId} class="modal-title">{title}</h3>
+        <slot name="meta" />
+        {
+          links.length > 0 && (
+            <div class="modal-links">
+              {links.map((link) => (
+                <a href={link.url} class="sbtn">
+                  <span>{link.label}</span>
+                  <Icon name="arrow-up-right" size={13} />
+                </a>
+              ))}
+            </div>
+          )
+        }
+      </div>
+      <slot />
+      <div class="modal-actions">
+        <button type="button" class="sbtn" data-dialog-close>{t.close}</button>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<script>
+  // Native <dialog>: focus moves in and back to the card, Esc closes, and the page behind is
+  // inert. Closing waits for the exit animation in global.css before the dialog goes away.
+  function closeDialog(dialog) {
+    if (!dialog.open || dialog.classList.contains('is-closing')) return;
+    dialog.classList.add('is-closing');
+    const finish = () => {
+      dialog.classList.remove('is-closing');
+      dialog.close();
+      dialog.style.transform = '';
+      dialog.style.removeProperty('--drag');
+    };
+    Promise.all(dialog.getAnimations().map((animation) => animation.finished)).then(finish, finish);
+  }
+
+  // Phones: drag the sheet down to close it. The drag can start on the top bar at any time, or
+  // anywhere on the sheet while its content is scrolled to the top (otherwise it just scrolls).
+  const phone = window.matchMedia('(max-width: 719px)');
+  const BAR_HEIGHT = 64;
+
+  function enableSwipeToClose(dialog) {
+    const panel = dialog.querySelector('.modal');
+    let tracking = false;
+    let dragging = false;
+    let startY = 0;
+    let lastY = 0;
+    let lastTime = 0;
+    let velocity = 0;
+
+    panel.addEventListener(
+      'touchstart',
+      (event) => {
+        if (!phone.matches || event.touches.length !== 1) return;
+        const y = event.touches[0].clientY;
+        const onBar = y - panel.getBoundingClientRect().top < BAR_HEIGHT;
+        tracking = onBar || panel.scrollTop <= 0;
+        dragging = false;
+        startY = lastY = y;
+        lastTime = event.timeStamp;
+        velocity = 0;
+      },
+      { passive: true },
+    );
+
+    panel.addEventListener(
+      'touchmove',
+      (event) => {
+        if (!tracking) return;
+        const y = event.touches[0].clientY;
+        const offset = y - startY;
+        if (!dragging) {
+          if (offset < -6) tracking = false; // an upward swipe scrolls the content
+          if (offset < 6) return;
+          dragging = true;
+          // Let a still-running open animation jump to its end so the sheet follows the finger.
+          dialog.getAnimations().forEach((animation) => animation.finish());
+        }
+        event.preventDefault();
+        if (event.timeStamp > lastTime) velocity = (y - lastY) / (event.timeStamp - lastTime);
+        lastY = y;
+        lastTime = event.timeStamp;
+        const distance = Math.max(0, offset);
+        dialog.style.transform = `translateY(${distance}px)`;
+        dialog.style.setProperty('--drag', String(Math.min(distance / panel.offsetHeight, 1)));
+      },
+      { passive: false },
+    );
+
+    const release = () => {
+      tracking = false;
+      if (!dragging) return;
+      dragging = false;
+      const distance = lastY - startY;
+      if (distance > Math.min(140, panel.offsetHeight * 0.3) || velocity > 0.5) {
+        // The exit animation carries on from where the finger let go.
+        closeDialog(dialog);
+        return;
+      }
+      dialog.animate([{ transform: dialog.style.transform }, { transform: 'translateY(0)' }], {
+        duration: 220,
+        easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+      });
+      dialog.style.transform = '';
+      dialog.style.removeProperty('--drag');
+    };
+    panel.addEventListener('touchend', release);
+    panel.addEventListener('touchcancel', release);
+  }
+
+  for (const button of document.querySelectorAll('[data-dialog-open]')) {
+    const dialog = document.getElementById(button.dataset.dialogOpen);
+    if (!dialog) continue;
+    button.addEventListener('click', () => {
+      dialog.querySelector('.modal').scrollTop = 0;
+      dialog.classList.remove('is-scrolled');
+      dialog.showModal();
+    });
+  }
+
+  for (const dialog of document.querySelectorAll('.modal-dialog')) {
+    // A click on the dialog element itself is a click on the backdrop. Only close when the press
+    // also started there, so selecting text and releasing outside the panel doesn't dismiss it.
+    let pressedBackdrop = false;
+    dialog.addEventListener('pointerdown', (event) => {
+      pressedBackdrop = event.target === dialog;
+    });
+    dialog.addEventListener('click', (event) => {
+      if ((event.target === dialog && pressedBackdrop) || event.target.closest('[data-dialog-close]')) {
+        closeDialog(dialog);
+      }
+    });
+    dialog.addEventListener('cancel', (event) => {
+      event.preventDefault();
+      closeDialog(dialog);
+    });
+
+    // Sticky header: once the big title has scrolled up under the bar, the bar shows the name.
+    const title = dialog.querySelector('.modal-title');
+    new IntersectionObserver(
+      ([entry]) => {
+        if (dialog.open) dialog.classList.toggle('is-scrolled', !entry.isIntersecting);
+      },
+      { root: dialog.querySelector('.modal'), rootMargin: `-${BAR_HEIGHT}px 0px 0px 0px` },
+    ).observe(title);
+
+    enableSwipeToClose(dialog);
+  }
+</script>

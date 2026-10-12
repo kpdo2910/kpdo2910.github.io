@@ -1,0 +1,23 @@
+---
+import Icon from './Icon.astro';
+import { NAV } from '../data/site.js';
+import { localizePath, useTranslations } from '../i18n/utils.js';
+
+// Phone-width navigation; hidden on wider screens by global.css.
+const { locale, active, current = true } = Astro.props;
+const t = useTranslations(locale);
+---
+<nav class="ui tabbar" aria-label={t.nav.label}>
+  {
+    NAV.map((item) => (
+      <a
+        href={localizePath(item.path, locale)}
+        class:list={['tab', { 'is-active': active === item.key }]}
+        aria-current={active === item.key && current ? 'page' : undefined}
+      >
+        <Icon name={item.icon} size={20} />
+        <span>{t.nav[item.key]}</span>
+      </a>
+    ))
+  }
+</nav>

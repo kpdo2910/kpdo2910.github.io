@@ -1,13 +1,20 @@
-_site
-.bundle
-.sass-cache
-.jekyll-cache
-.jekyll-metadata
-.DS_store
-.ruby-version
-.tweet-cache
-Gemfile.lock
-assets/libs/
+# build output
+dist/
+.astro/
+
+# dependencies
 node_modules/
-vendor
-.idea
+
+# logs
+npm-debug.log*
+
+# environment variables
+.env
+.env.*
+
+# editors and OS
+.DS_Store
+.idea/
+
+# machine-specific preview config for the Claude desktop app
+.claude/launch.json

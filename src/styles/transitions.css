@@ -1,0 +1,49 @@
+/* Page-to-page animation with cross-document View Transitions (Chrome, Edge, Safari 18.2+;
+   other browsers simply navigate). BaseLayout inlines this file in <head>, so a new page has
+   opted in before its first frame, also under `astro dev`, where stylesheets arrive later via JS.
+
+   Switching tabs or menu items cross-fades the page while the header and tab bar hold still.
+   Only the post the visitor picked gets a hero flight: src/scripts/page-transitions.js names
+   that one title `hero` on both pages. */
+
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+}
+
+.site-bar {
+  view-transition-name: site-header;
+}
+
+.tabbar {
+  view-transition-name: tab-bar;
+}
+
+::view-transition-group(*) {
+  animation-duration: 240ms;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 240ms;
+  animation-timing-function: ease;
+}
+
+::view-transition-group(hero) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Theme switch (ThemeToggle.astro): the whole page, header and tab bar included, is one
+   snapshot; the old theme stays put while the new one is revealed by a growing circle. */
+html.theme-transition .site-bar,
+html.theme-transition .tabbar {
+  view-transition-name: none;
+}
+
+html.theme-transition::view-transition-old(root),
+html.theme-transition::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}

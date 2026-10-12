@@ -1,0 +1,28 @@
+---
+import { formatDate } from '../i18n/format.js';
+import { localizePath } from '../i18n/utils.js';
+
+// One row of the post timeline.
+// variant: 'latest' (big, home) · 'compact' (one-line summary, home) · 'full' (blog list)
+const { post, locale, variant = 'full', label, first = false, last = false, headingLevel = 2 } = Astro.props;
+const { title, summary, date, tags } = post.entry.data;
+const Heading = `h${headingLevel}`;
+const showTags = variant !== 'compact' && tags.length > 0;
+---
+<li
+  class:list={['tl-row', `tl-${variant}`, { 'tl-first': first, 'tl-last': last }]}
+  data-tags={variant === 'full' ? JSON.stringify(tags) : undefined}
+>
+  <span class="mono tl-date"><time datetime={date.toISOString().slice(0, 10)}>{formatDate(date, locale)}</time></span>
+  <span class="tl-dot" aria-hidden="true"></span>
+  <a href={localizePath(`/blog/${post.slug}/`, locale)} class="tl-body">
+    {label && <span class="mono label tl-label">{label}</span>}
+    <Heading class="tl-title" lang={post.isFallback ? post.lang : undefined} data-hero={`post:${post.slug}`}>
+      {title}
+    </Heading>
+    <span class:list={['tl-summary', { ellipsis: variant === 'compact' }]} lang={post.isFallback ? post.lang : undefined}>
+      {summary}
+    </span>
+    {showTags && <span class="chips tl-tags">{tags.map((tag) => <span class="chip">{tag}</span>)}</span>}
+  </a>
+</li>

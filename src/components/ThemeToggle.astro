@@ -1,0 +1,84 @@
+---
+import Icon from './Icon.astro';
+import { useTranslations } from '../i18n/utils.js';
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+---
+<button type="button" class="pill theme-toggle" aria-label={t.themeToggle} data-theme-toggle>
+  <Icon name="sun" class="when-dark" />
+  <Icon name="moon" class="when-light" />
+  <span class="pill-label when-dark">{t.themeLight}</span>
+  <span class="pill-label when-light">{t.themeDark}</span>
+</button>
+
+<script>
+  // The starting theme is set by the inline script in BaseLayout's <head>.
+  const root = document.documentElement;
+  const THEME_COLORS = { light: '#F6EFE5', dark: '#131110' };
+
+  function storedTheme() {
+    try {
+      return localStorage.getItem('theme');
+    } catch {
+      return null;
+    }
+  }
+
+  function applyTheme(theme) {
+    // Swap colors with hover transitions off, so the page doesn't fade link by link.
+    root.classList.add('theme-switching');
+    root.dataset.theme = theme;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_COLORS[theme]);
+    void getComputedStyle(root).color;
+    requestAnimationFrame(() => root.classList.remove('theme-switching'));
+  }
+
+  // The new theme spreads out from the button in a growing circle (a same-document View
+  // Transition; see "Theme switch" in transitions.css). Without View Transitions, or with reduced
+  // motion, it switches at once.
+  function switchTheme(next, button) {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!document.startViewTransition || reduceMotion) {
+      applyTheme(next);
+      return;
+    }
+    const box = button.getBoundingClientRect();
+    const x = box.left + box.width / 2;
+    const y = box.top + box.height / 2;
+    const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+
+    root.classList.add('theme-transition');
+    const transition = document.startViewTransition(() => applyTheme(next));
+    transition.ready
+      .then(() => {
+        root.animate(
+          { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+          {
+            duration: 600,
+            easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+            pseudoElement: '::view-transition-new(root)',
+          },
+        );
+      })
+      .catch(() => {});
+    transition.finished.finally(() => root.classList.remove('theme-transition'));
+  }
+
+  for (const button of document.querySelectorAll('[data-theme-toggle]')) {
+    button.addEventListener('click', () => {
+      const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      switchTheme(next, button);
+      try {
+        localStorage.setItem('theme', next);
+      } catch {
+        // Private mode or blocked storage: the choice just won't be remembered.
+      }
+    });
+  }
+
+  // Until the visitor picks a theme, keep following the system setting.
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
+    if (!storedTheme()) applyTheme(event.matches ? 'dark' : 'light');
+  });
+</script>

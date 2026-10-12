@@ -1,0 +1,2160 @@
+/* ---------- Base ---------- */
+
+html {
+  background: var(--bg);
+  /* In-page jumps land below the sticky header. */
+  scroll-padding-top: 96px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  font: inherit;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+::selection {
+  background: var(--accent-soft2);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 100;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--fg);
+  color: var(--bg);
+  font-size: 13px;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: none;
+  color: var(--bg);
+}
+
+/* ---------- Type helpers ---------- */
+
+.ui {
+  font-family: var(--font-ui);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--soft);
+}
+
+.label {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 11px;
+}
+
+.ulink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  color: var(--muted);
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 3px;
+}
+
+.ulink:hover {
+  color: var(--accent);
+  text-decoration-color: var(--accent);
+}
+
+/* ---------- Page frame ---------- */
+
+.page {
+  max-width: 696px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* The header bar sticks to the top on every screen size; on phones it also hides while
+   scrolling down (Header.astro adds .is-hidden). */
+.site-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom: 1px solid transparent;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.site-bar.is-scrolled {
+  border-bottom-color: var(--line);
+}
+
+.hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  max-width: 696px;
+  margin: 0 auto;
+  padding: 26px 20px 18px;
+}
+
+.brand {
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.nav-desktop {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  padding: 4px 1px;
+  font-size: 13.5px;
+  color: var(--soft);
+  white-space: nowrap;
+}
+
+.nav-link:hover,
+.nav-link.is-active {
+  color: var(--fg);
+}
+
+.nav-link.is-active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: var(--accent);
+}
+
+.hdr-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pill:hover {
+  background: var(--accent-soft2);
+  color: var(--accent);
+}
+
+/* The theme button shows what it switches to; both versions are in the HTML. */
+:root:not([data-theme='dark']) .when-dark,
+:root[data-theme='dark'] .when-light {
+  display: none;
+}
+
+/* Language switch: a globe whose pill grows downward into the list of languages
+   (LangSwitcher.astro toggles .is-open). It keeps its 32px spot in the bar, so nothing else
+   moves; the open list floats over the page, hence the solid background. */
+.lang-switch {
+  position: relative;
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+}
+
+.lang-switch::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
+  background: var(--accent-soft);
+}
+
+.lang-switch:hover::before {
+  background: var(--accent-soft2);
+}
+
+.lang-switch.is-open::before {
+  height: calc(34px + var(--lang-count) * 30px);
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg));
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+}
+
+.lang-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.lang-options {
+  position: absolute;
+  top: 32px;
+  left: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  visibility: hidden;
+}
+
+.lang-switch.is-open .lang-options {
+  visibility: visible;
+}
+
+.lang-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  color: var(--soft);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+.lang-switch.is-open .lang-btn {
+  opacity: 1;
+  transform: none;
+}
+
+.lang-btn:hover {
+  color: var(--fg);
+}
+
+.lang-btn.is-active {
+  color: var(--accent);
+  background: var(--bg);
+}
+
+.site-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 20px;
+  padding: 28px 0 40px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--soft);
+}
+
+.site-footer-links {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.site-footer .ulink {
+  font-size: 13px;
+}
+
+.tabbar {
+  display: none;
+}
+
+/* ---------- Buttons, chips, badges ---------- */
+
+.sbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 13px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.sbtn:hover {
+  color: var(--accent);
+  border-color: var(--accent-soft2);
+}
+
+.sbtn-primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.sbtn-primary:hover {
+  color: var(--bg);
+  border-color: var(--accent);
+  opacity: 0.9;
+}
+
+.social-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--soft);
+  white-space: nowrap;
+}
+
+.chip-btn {
+  height: 30px;
+  padding: 0 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.chip-btn:hover {
+  color: var(--fg);
+  border-color: var(--accent-soft2);
+}
+
+.chip-btn.is-active {
+  background: var(--accent-soft);
+  border-color: transparent;
+  color: var(--accent);
+}
+
+.badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 2px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+/* ---------- Sections ---------- */
+
+.section-label {
+  margin: 0;
+  font-weight: 500;
+}
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.page-head {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 40px 0 28px;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 36px;
+  line-height: 1.1;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.page-intro {
+  margin: 0;
+  font-size: 19.5px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+/* Home */
+
+.home-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 48px 0 44px;
+}
+
+.home-kicker {
+  margin: 0;
+}
+
+.home-greeting {
+  margin: 0;
+  font-size: clamp(2.4rem, 1.6rem + 3vw, 3.6rem);
+  line-height: 1.08;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+
+.home-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.home-writing {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 28px 0 36px;
+}
+
+.home-projects {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 36px 0 44px;
+  border-top: 1px solid var(--line);
+}
+
+/* ---------- Project cards ---------- */
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: 14px;
+}
+
+.projects-list {
+  padding: 8px 0 44px;
+}
+
+.card {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  min-height: 168px;
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  box-sizing: border-box;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.card:hover {
+  border-color: var(--accent-soft2);
+}
+
+.card:hover .card-title {
+  color: var(--accent);
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.25;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.card-desc {
+  margin: 0;
+  font-size: 16.5px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+/* "Read more →" at the bottom right of project and experience cards. */
+.card-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-end;
+  margin-top: auto;
+  padding-top: 4px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--soft);
+}
+
+.card:hover .card-more,
+.xp-card:hover .card-more {
+  color: var(--accent);
+}
+
+/* ---------- Post timeline (home + blog) ---------- */
+
+.tl {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tl-row {
+  position: relative;
+  display: grid;
+  /* 92px, not the design's 80px: dates like "Sep 14, 2026" or "2026年10月14日" wrapped. */
+  grid-template-columns: 92px 28px minmax(0, 1fr);
+  padding: 14px 0;
+}
+
+.tl-row::before,
+.tl-row::after {
+  content: '';
+  position: absolute;
+  left: 105.5px;
+  width: 1px;
+  background: var(--line);
+}
+
+.tl-row::before {
+  top: 0;
+  height: 24px;
+}
+
+.tl-row::after {
+  top: 24px;
+  bottom: 0;
+}
+
+.tl-first::before,
+.tl-last::after {
+  display: none;
+}
+
+.tl-date {
+  grid-column: 1;
+  text-align: right;
+  padding-top: 3px;
+  white-space: nowrap;
+}
+
+.tl-dot {
+  position: relative;
+  z-index: 1;
+  grid-column: 2;
+  justify-self: center;
+  width: 9px;
+  height: 9px;
+  margin-top: 5px;
+  border-radius: 999px;
+  border: 1px solid var(--soft);
+  background: var(--bg);
+}
+
+.tl-body {
+  grid-column: 3;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+a.tl-body:hover {
+  color: inherit;
+}
+
+a.tl-body:hover .tl-title {
+  color: var(--accent);
+}
+
+.tl-title {
+  margin: 0;
+  font-weight: 500;
+}
+
+.tl-summary {
+  color: var(--muted);
+}
+
+.tl-label {
+  color: var(--accent);
+}
+
+.tl-latest .tl-body {
+  gap: 10px;
+}
+
+.tl-latest .tl-title {
+  font-size: 30px;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.tl-latest .tl-summary {
+  font-size: 18px;
+  line-height: 1.55;
+}
+
+.tl-latest .tl-tags {
+  margin-top: 2px;
+}
+
+.tl-compact .tl-title {
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.tl-compact .tl-summary {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.tl-full .tl-title {
+  font-size: 20px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.tl-full .tl-summary {
+  font-size: 16.5px;
+  line-height: 1.55;
+}
+
+.tl-full .tl-tags {
+  margin-top: 4px;
+}
+
+.ellipsis {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tl-more {
+  align-self: flex-start;
+  margin-top: 6px;
+  margin-left: 120px;
+}
+
+/* ---------- Blog ---------- */
+
+.blog-head {
+  padding-bottom: 8px;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.filter {
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.filter-icon {
+  margin-right: 2px;
+  color: var(--soft);
+}
+
+.blog-list {
+  padding: 20px 0 44px;
+}
+
+.empty {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+/* ---------- Post ---------- */
+
+.post {
+  display: flex;
+  flex-direction: column;
+  padding: 36px 0 44px;
+}
+
+.post-back {
+  align-self: flex-start;
+}
+
+.post-note {
+  margin: 24px 0 0;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.post-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 36px;
+}
+
+.post-note + .post-meta {
+  margin-top: 28px;
+}
+
+.post-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.post-title {
+  margin: 14px 0 0;
+  font-size: clamp(2rem, 1.4rem + 2vw, 2.6rem);
+  line-height: 1.12;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.post-lead {
+  margin: 18px 0 0;
+  font-size: 21px;
+  line-height: 1.5;
+  font-style: italic;
+  color: var(--muted);
+}
+
+.post-rule {
+  width: 100%;
+  margin: 36px 0 24px;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.post-tags {
+  align-items: center;
+  gap: 8px;
+  margin-top: 36px;
+}
+
+.pager {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: 16px 32px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.pager-link {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+a.pager-link:hover {
+  color: inherit;
+}
+
+a.pager-link:hover .pager-title {
+  color: var(--accent);
+}
+
+.pager-next {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.pager-dir {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--soft);
+}
+
+.pager-title {
+  font-size: 18px;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+/* ---------- About ---------- */
+
+.about-head {
+  gap: 20px;
+  padding-bottom: 36px;
+}
+
+.about-bio {
+  margin: 0;
+  font-size: 19.5px;
+  line-height: 1.65;
+}
+
+.about-bio.is-muted {
+  color: var(--muted);
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fact {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+.fact svg {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+.about-head .social-links {
+  margin-top: 4px;
+}
+
+.xp-section {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 36px 0 40px;
+  border-top: 1px solid var(--line);
+}
+
+.xp {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+}
+
+.xp-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 56px minmax(0, 1fr);
+  align-items: start;
+}
+
+.xp-item::before,
+.xp-item::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  width: 1px;
+  margin-left: -0.5px;
+  background: var(--line);
+}
+
+.xp-item::before {
+  top: 0;
+  height: 18px;
+}
+
+.xp-item::after {
+  top: 18px;
+  bottom: 0;
+}
+
+.xp-first::before,
+.xp-last::after {
+  display: none;
+}
+
+.xp-marker {
+  position: relative;
+  z-index: 1;
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-top: 2px;
+  border-radius: 8px;
+  border: 1px solid var(--accent-soft2);
+  background: var(--bg);
+  color: var(--accent);
+}
+
+.xp-side {
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 32px;
+}
+
+.xp-left .xp-side {
+  grid-column: 1;
+}
+
+.xp-right .xp-side {
+  grid-column: 3;
+}
+
+.xp-date {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+  min-height: 28px;
+  padding: 0 4px;
+}
+
+/* If the dates don't fit on one line, wrap between the parts, never inside one. */
+.xp-date > * {
+  white-space: nowrap;
+}
+
+.xp-left .xp-date {
+  align-self: flex-end;
+}
+
+.xp-right .xp-date {
+  align-self: flex-start;
+}
+
+.xp-date em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--soft);
+}
+
+.xp-card,
+.edu-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  box-sizing: border-box;
+}
+
+.xp-card {
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.xp-card:hover {
+  border-color: var(--accent-soft2);
+}
+
+.xp-company {
+  font-size: 19px;
+  line-height: 1.3;
+  font-weight: 500;
+}
+
+.xp-role {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+.xp-place {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.xp-desc {
+  margin-top: 2px;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+/* Programming languages, certificates: plain sections between the timelines. */
+.about-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 36px 0 40px;
+  border-top: 1px solid var(--line);
+}
+
+.skill-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.skill-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.skill-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.skill-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.skill-name {
+  font-size: 17px;
+  line-height: 1.2;
+  font-weight: 500;
+}
+
+#certificates {
+  gap: 16px;
+}
+
+.cert-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-bottom: 1px solid var(--line);
+}
+
+.cert-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+}
+
+.cert-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--accent-soft2);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--accent);
+}
+
+.cert-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.cert-name {
+  font-size: 18px;
+  line-height: 1.3;
+  font-weight: 500;
+}
+
+.cert-link {
+  margin-top: 8px;
+  white-space: nowrap;
+}
+
+/* ---------- Detail dialog (Dialog.astro) ---------- */
+/* Centered on wide screens, a bottom sheet on phones. */
+
+.modal-dialog {
+  width: min(620px, calc(100% - 40px));
+  max-width: none;
+  max-height: calc(100dvh - 40px);
+  margin: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+  overflow: visible;
+}
+
+.modal-dialog::backdrop {
+  background: rgba(38, 33, 28, 0.4);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  /* --drag (0–1) is set while a phone sheet is dragged down; the backdrop fades with it. */
+  opacity: calc(1 - var(--drag, 0));
+}
+
+:root[data-theme='dark'] .modal-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+/* Keep the page behind still while a dialog is open. */
+html:has(.modal-dialog[open]) {
+  overflow: hidden;
+}
+
+/* The panel is the scroll container. */
+.modal {
+  position: relative;
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg);
+  box-sizing: border-box;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+}
+
+/* Sticky bar at the top of the panel. It takes no room itself: the close button floats over
+   the corner as in the design, and once the title has scrolled away (.is-scrolled, set by
+   Dialog.astro) a backdrop and the company or project name fade in behind it. */
+.modal-bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 0;
+}
+
+.modal-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 94%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.modal-bar-title {
+  position: absolute;
+  top: 0;
+  left: 28px;
+  right: 64px;
+  overflow: hidden;
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 64px;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+}
+
+.modal-dialog.is-scrolled .modal-bar::before,
+.modal-dialog.is-scrolled .modal-bar-title {
+  opacity: 1;
+  transform: none;
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  background: var(--accent-soft2);
+}
+
+/* Grab handle, phones only: the sheet can be dragged down to close. */
+.modal-handle {
+  display: none;
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 28px;
+}
+
+.modal-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  min-width: 0;
+  /* Room for the close button in the corner. */
+  padding-right: 40px;
+}
+
+.modal-title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 24px;
+  line-height: 1.2;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.modal-role {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+.modal-date {
+  min-height: 0;
+  padding: 0;
+}
+
+.modal-badge {
+  margin: 2px 0;
+}
+
+/* "View company", project website and store links, right under the title block. */
+.modal-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.modal-text {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.modal-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-label {
+  margin: 0;
+  font-weight: 500;
+}
+
+.modal-bullets {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding-left: 20px;
+  font-family: var(--font-serif);
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+.modal-bullets li::marker {
+  color: var(--accent);
+}
+
+.modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.modal-actions .sbtn {
+  cursor: pointer;
+}
+
+/* ---------- Post page: back to top, pull up to go back ---------- */
+
+.to-top {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 15;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg));
+  color: var(--accent);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px) scale(0.9);
+}
+
+.to-top.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+
+.to-top:hover {
+  background: color-mix(in srgb, var(--accent) 18%, var(--bg));
+}
+
+/* PullToGoBack.astro: the ring draws from the bottom up as --progress goes 0 → 1, then the
+   circle fills (.is-armed) to say "let go to go back". */
+.pull-back {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-left: -20px;
+  border-radius: 50%;
+  color: var(--soft);
+  opacity: 0;
+  transform: translateY(16px) scale(0.8);
+  pointer-events: none;
+}
+
+.pull-back.is-pulling {
+  opacity: min(1, calc(var(--progress, 0) * 3));
+  transform: translateY(calc((1 - var(--progress, 0)) * 16px)) scale(calc(0.8 + var(--progress, 0) * 0.2));
+}
+
+.pull-back-ring {
+  position: absolute;
+  inset: 0;
+}
+
+.pull-back-ring path,
+.pull-back-arrow path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pull-back-ring path {
+  stroke-dasharray: var(--progress, 0) 1;
+}
+
+.pull-back-arrow {
+  opacity: calc(var(--progress, 0) * 1.6 - 0.6);
+}
+
+.pull-back.is-armed {
+  background: var(--fg);
+  color: var(--bg);
+  transform: scale(1.08);
+}
+
+.pull-back.is-armed .pull-back-ring {
+  opacity: 0;
+}
+
+.pull-back.is-armed .pull-back-arrow {
+  opacity: 1;
+}
+
+/* ---------- Touch ripple (src/scripts/ripple.js) ---------- */
+/* Like Flutter's InkWell: a soft splash of the element's own text color spreads from the
+   finger, clipped to the element's rounded shape. Touch and pen only. */
+
+.ink {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.ink-dot {
+  position: absolute;
+  border-radius: 50%;
+  background: color-mix(in srgb, currentColor 16%, transparent);
+}
+
+/* The ripple replaces the browser's grey tap flash on phones. */
+.card,
+.xp-card,
+.sbtn,
+.pill,
+.chip-btn,
+a.chip,
+.lang-toggle,
+.lang-btn,
+.modal-close,
+.to-top,
+.tab,
+.tl-body,
+.pager-link {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---------- Intro splash (Splash.astro), home page only ---------- */
+/* One 4.4 s timeline shared by every layer, as in the design's Splash artboard. */
+
+html:not(.has-splash) .splash {
+  display: none;
+}
+
+html.has-splash {
+  overflow: hidden;
+}
+
+/* Held until the display font has loaded (Splash.astro). */
+html.splash-waiting .splash,
+html.splash-waiting .splash * {
+  animation-play-state: paused;
+}
+
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+html.splash-skipping .splash {
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.splash-veil {
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  animation: splash-veil 4.4s cubic-bezier(0.76, 0, 0.24, 1) both;
+}
+
+.splash-panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  color: var(--fg);
+  cursor: pointer;
+  animation: splash-panel 4.4s cubic-bezier(0.76, 0, 0.24, 1) both;
+}
+
+.splash-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  padding: 0 24px;
+  text-align: center;
+}
+
+.splash-rule {
+  width: min(360px, 60vw);
+  height: 1px;
+  background: var(--accent);
+  transform-origin: center;
+  animation: splash-rule 4.4s cubic-bezier(0.7, 0, 0.2, 1) both;
+}
+
+.splash-name {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.22em;
+  margin: 0;
+  font-size: clamp(3rem, 9vw, 7rem);
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+/* Each word masks its letters, so they rise in from below the line. */
+.splash-word {
+  display: inline-block;
+  overflow: hidden;
+  padding: 0.06em 0.04em 0;
+  margin: -0.06em -0.04em 0;
+}
+
+.splash-ch {
+  display: inline-block;
+  animation: splash-ch 4.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(0.35s + var(--i) * 0.055s);
+}
+
+.splash-label {
+  margin: 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5em;
+  color: var(--soft);
+  animation: splash-label 4.4s ease both;
+  animation-delay: 0.95s;
+}
+
+.splash-skip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(28px + env(safe-area-inset-bottom));
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--soft);
+  opacity: 0;
+  animation: splash-skip 4.4s ease both;
+  animation-delay: 1.4s;
+}
+
+.splash-skip-touch {
+  display: none;
+}
+
+@media (hover: none) {
+  .splash-skip-mouse {
+    display: none;
+  }
+
+  .splash-skip-touch {
+    display: inline;
+  }
+}
+
+/* The design's panel also fades in over the first 3%, which only matters when the artboard
+   loops; on a real first load it would flash the accent veil, so it starts opaque here. */
+@keyframes splash-panel {
+  0%,
+  59% {
+    transform: translateY(0);
+  }
+  77%,
+  100% {
+    transform: translateY(-101%);
+  }
+}
+
+@keyframes splash-veil {
+  0%,
+  62% {
+    transform: translateY(0);
+  }
+  80%,
+  100% {
+    transform: translateY(-101%);
+  }
+}
+
+@keyframes splash-rule {
+  0%,
+  2% {
+    transform: scaleX(0);
+  }
+  22%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes splash-ch {
+  0% {
+    transform: translateY(112%);
+    opacity: 0;
+  }
+  14% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  56% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  60%,
+  100% {
+    transform: translateY(-45%);
+    opacity: 0;
+  }
+}
+
+@keyframes splash-label {
+  0% {
+    opacity: 0;
+    letter-spacing: 0.5em;
+    transform: translateY(6px);
+  }
+  16% {
+    opacity: 1;
+    letter-spacing: 0.18em;
+    transform: translateY(0);
+  }
+  54% {
+    opacity: 1;
+  }
+  57%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes splash-skip {
+  0% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  53%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ---------- 404 ---------- */
+
+.notfound-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ---------- Phones: bottom tab bar instead of the top nav ---------- */
+
+@media (max-width: 719px) {
+  html {
+    scroll-padding-top: 72px;
+  }
+
+  .hdr {
+    padding: 18px 20px 14px;
+  }
+
+  .site-bar.is-hidden {
+    transform: translateY(-100%);
+  }
+
+  .nav-desktop,
+  .pill-label {
+    display: none;
+  }
+
+  .pill {
+    padding: 0 9px;
+  }
+
+  .page {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom));
+  }
+
+  .tabbar {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    height: 60px;
+    padding-bottom: env(safe-area-inset-bottom);
+    border-top: 1px solid var(--line);
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 44px;
+    font-size: 10.5px;
+    letter-spacing: 0.02em;
+    color: var(--soft);
+  }
+
+  .tab:hover,
+  .tab.is-active {
+    color: var(--accent);
+  }
+
+  .tl-row {
+    grid-template-columns: 18px minmax(0, 1fr);
+    row-gap: 4px;
+    padding: 16px 0;
+  }
+
+  .tl-row::before,
+  .tl-row::after {
+    left: 8.5px;
+  }
+
+  .tl-row::before {
+    height: 25px;
+  }
+
+  .tl-row::after {
+    top: 25px;
+  }
+
+  .tl-dot {
+    grid-column: 1;
+    grid-row: 1;
+    margin-top: 4px;
+  }
+
+  .tl-date {
+    grid-column: 2;
+    grid-row: 1;
+    text-align: left;
+    padding-top: 0;
+  }
+
+  .tl-body {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .tl-more {
+    margin-left: 18px;
+  }
+
+  .xp-item {
+    grid-template-columns: 32px minmax(0, 1fr);
+    column-gap: 14px;
+  }
+
+  .xp-item::before,
+  .xp-item::after {
+    left: 16px;
+  }
+
+  .xp-marker {
+    grid-column: 1;
+  }
+
+  .xp-left .xp-side,
+  .xp-right .xp-side {
+    grid-column: 2;
+  }
+
+  .xp-left .xp-date,
+  .xp-right .xp-date {
+    align-self: flex-start;
+  }
+
+  .skill-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Two columns leave little room: a smaller tile keeps "TypeScript" inside the card. */
+  .skill-card {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .skill-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+
+  .skill-name {
+    font-size: 16px;
+  }
+
+  .cert-row {
+    flex-wrap: wrap;
+  }
+
+  .cert-link {
+    flex-basis: 100%;
+    margin: 0 0 0 50px;
+  }
+
+  .modal-dialog {
+    width: 100%;
+    max-height: 88dvh;
+    margin: auto 0 0;
+  }
+
+  .modal {
+    max-height: 88dvh;
+    border-bottom: 0;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .modal-bar-title {
+    left: 20px;
+  }
+
+  .modal-handle {
+    display: block;
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    width: 36px;
+    height: 4px;
+    margin-left: -18px;
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--fg) 22%, transparent);
+  }
+
+  .modal-body {
+    padding: 28px 20px calc(32px + env(safe-area-inset-bottom));
+  }
+
+  .to-top {
+    right: 16px;
+    bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+
+  .pull-back {
+    bottom: calc(84px + env(safe-area-inset-bottom));
+  }
+
+  /* Phones close the sheet with a swipe, the corner button, or a tap outside. */
+  .modal-actions {
+    display: none;
+  }
+}
+
+/* Very narrow phones: one language per row, so the names still fit. */
+@media (max-width: 359px) {
+  .skill-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------- Motion ---------- */
+
+/* Hover states ease in instead of snapping. */
+a,
+button,
+.card-title,
+.tl-title,
+.pager-title,
+.card-more {
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    text-decoration-color 150ms ease;
+}
+
+/* The phone header slides out of the way and back. */
+.site-bar {
+  transition:
+    transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 150ms ease;
+}
+
+/* Language pill: grows open, then the languages drop in one after another; closing is quicker. */
+.lang-switch::before {
+  transition:
+    height 280ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 150ms ease,
+    box-shadow 280ms ease;
+}
+
+.lang-options {
+  transition: visibility 0s 200ms;
+}
+
+.lang-switch.is-open .lang-options {
+  transition: visibility 0s;
+}
+
+.lang-btn {
+  transition:
+    opacity 120ms ease,
+    transform 160ms ease,
+    color 150ms ease,
+    background-color 150ms ease;
+}
+
+.lang-switch.is-open .lang-btn {
+  transition:
+    opacity 180ms ease calc(60ms + var(--i) * 40ms),
+    transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1) calc(60ms + var(--i) * 40ms),
+    color 150ms ease,
+    background-color 150ms ease;
+}
+
+/* Back-to-top button fades and rises in; the pull ring follows the finger, so it only eases
+   while appearing and disappearing. */
+.to-top {
+  transition:
+    opacity 180ms ease,
+    transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    visibility 0s 220ms,
+    background-color 150ms ease;
+}
+
+.to-top.is-visible {
+  transition:
+    opacity 180ms ease,
+    transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    visibility 0s,
+    background-color 150ms ease;
+}
+
+.pull-back {
+  transition:
+    opacity 160ms ease,
+    transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.pull-back.is-pulling:not(.is-armed) {
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+/* The dialog's sticky name bar fades in once the title scrolls away. */
+.modal-bar::before,
+.modal-bar-title {
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+/* ThemeToggle sets this for a frame so a theme switch lands at once, not link by link. */
+:root.theme-switching *,
+:root.theme-switching *::before,
+:root.theme-switching *::after {
+  transition: none !important;
+}
+
+/* Dialog open and close. Closing adds .is-closing and waits for the animation to finish. */
+.modal-dialog[open] {
+  animation: dialog-in 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.modal-dialog[open]::backdrop {
+  animation: fade-in 240ms ease-out;
+}
+
+.modal-dialog.is-closing {
+  animation: dialog-out 160ms ease-in forwards;
+}
+
+.modal-dialog.is-closing::backdrop {
+  animation: fade-out 160ms ease-in forwards;
+}
+
+@media (max-width: 719px) {
+  .modal-dialog[open] {
+    animation: sheet-in 340ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .modal-dialog.is-closing {
+    animation: sheet-out 220ms cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+}
+
+/* Reduced motion: dialogs only fade; the header and language pill change without moving. */
+@media (prefers-reduced-motion: reduce) {
+  .site-bar,
+  .lang-switch::before,
+  .lang-btn,
+  .lang-switch.is-open .lang-btn {
+    transition: none;
+  }
+
+  .modal-dialog[open] {
+    animation: fade-in 120ms ease-out;
+  }
+
+  .modal-dialog.is-closing {
+    animation: fade-out 120ms ease-in forwards;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+}
+
+@keyframes dialog-out {
+  to {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes sheet-out {
+  to {
+    transform: translateY(100%);
+  }
+}
+

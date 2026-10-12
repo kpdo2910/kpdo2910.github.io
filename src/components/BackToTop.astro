@@ -1,0 +1,43 @@
+---
+import Icon from './Icon.astro';
+import { useTranslations } from '../i18n/utils.js';
+
+// Round button in the bottom corner, shown once the reader has scrolled down a bit.
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+---
+<button type="button" class="to-top" data-to-top aria-label={t.post.backToTop} title={t.post.backToTop}>
+  <Icon name="arrow-up" size={18} />
+</button>
+
+<script>
+  const button = document.querySelector('[data-to-top]');
+  let queued = false;
+
+  function update() {
+    queued = false;
+    button.classList.toggle('is-visible', window.scrollY > window.innerHeight * 0.6);
+  }
+
+  window.addEventListener(
+    'scroll',
+    () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(update);
+    },
+    { passive: true },
+  );
+  update();
+
+  button.addEventListener('click', () => {
+    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' });
+    // Keyboard and screen reader users land on the title instead of an invisible button.
+    const heading = document.querySelector('main h1');
+    if (heading) {
+      heading.setAttribute('tabindex', '-1');
+      heading.focus({ preventScroll: true });
+    }
+  });
+</script>
