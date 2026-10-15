@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://phongdk.is-a.dev/sitemap-index.xml

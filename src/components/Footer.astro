@@ -1,0 +1,20 @@
+---
+import Icon from './Icon.astro';
+import { SITE } from '../data/site.js';
+import { localizePath, useTranslations } from '../i18n/utils.js';
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const year = new Date().getFullYear();
+---
+<footer class="ui site-footer">
+  <span>© {year} {SITE.name}</span>
+  <div class="site-footer-links">
+    <a href={localizePath('/feed.xml', locale)} class="ulink">RSS</a>
+    <span class="mono" aria-hidden="true">·</span>
+    <a href={SITE.repo} class="ulink">
+      <span>{t.footer.source}</span>
+      <Icon name="arrow-up-right" size={12} />
+    </a>
+  </div>
+</footer>

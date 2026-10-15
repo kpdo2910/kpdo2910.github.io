@@ -1,0 +1,76 @@
+---
+import Icon from './Icon.astro';
+import { LOCALES, LOCALE_META } from '../i18n/ui.js';
+import { localizePath, useTranslations } from '../i18n/utils.js';
+
+// Only the globe shows in the bar. Clicking it grows the pill downward into the list of
+// languages; picking one goes to this page in that language, and the pill folds back.
+// `path` is the current page without its language prefix, e.g. '/blog/'.
+const { locale, path } = Astro.props;
+const t = useTranslations(locale);
+---
+<div class="lang-switch" data-lang-switch style={`--lang-count: ${LOCALES.length}`}>
+  <button
+    type="button"
+    class="lang-toggle"
+    aria-expanded="false"
+    aria-controls="lang-options"
+    aria-label={`${t.langLabel}: ${LOCALE_META[locale].name}`}
+    title={t.langLabel}
+  >
+    <Icon name="globe" />
+  </button>
+  <div class="lang-options" id="lang-options" role="group" aria-label={t.langLabel}>
+    {
+      LOCALES.map((code, index) => (
+        <a
+          href={localizePath(path, code)}
+          class:list={['lang-btn', { 'is-active': code === locale }]}
+          hreflang={code}
+          title={LOCALE_META[code].name}
+          aria-current={code === locale ? 'true' : undefined}
+          style={`--i: ${index}`}
+        >
+          {LOCALE_META[code].code}
+        </a>
+      ))
+    }
+  </div>
+</div>
+
+<script>
+  for (const root of document.querySelectorAll('[data-lang-switch]')) {
+    const toggle = root.querySelector('.lang-toggle');
+    const isOpen = () => root.classList.contains('is-open');
+    const setOpen = (open) => {
+      root.classList.toggle('is-open', open);
+      toggle.setAttribute('aria-expanded', String(open));
+    };
+
+    toggle.addEventListener('click', () => setOpen(!isOpen()));
+
+    root.addEventListener('click', (event) => {
+      const option = event.target.closest('.lang-btn');
+      if (!option) return;
+      // Already in this language: nothing to load, just fold back to the globe.
+      if (option.classList.contains('is-active')) event.preventDefault();
+      setOpen(false);
+    });
+
+    root.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || !isOpen()) return;
+      setOpen(false);
+      toggle.focus();
+    });
+
+    root.addEventListener('focusout', (event) => {
+      if (!root.contains(event.relatedTarget)) setOpen(false);
+    });
+
+    document.addEventListener('click', (event) => {
+      if (isOpen() && !root.contains(event.target)) setOpen(false);
+    });
+
+    window.addEventListener('scroll', () => isOpen() && setOpen(false), { passive: true });
+  }
+</script>

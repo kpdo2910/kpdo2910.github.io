@@ -1,0 +1,28 @@
+---
+import Icon from '../components/Icon.astro';
+import { LOCALES, UI } from '../i18n/ui.js';
+import { localizePath, useTranslations } from '../i18n/utils.js';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// GitHub Pages serves this one file for every missing URL, so it links home in all three languages.
+const t = useTranslations('en');
+---
+<BaseLayout title={t.notFound.title} description={t.notFound.text} alternates={[]} noindex>
+  <section class="page-head">
+    <p class="mono label section-label">404</p>
+    <h1 class="page-title">{t.notFound.title}</h1>
+    <p class="page-intro">{t.notFound.text}</p>
+    <ul class="ui notfound-links">
+      {
+        LOCALES.map((code) => (
+          <li>
+            <a href={localizePath('/', code)} class="ulink" lang={code}>
+              <Icon name="arrow-left" />
+              <span>{UI[code].notFound.home}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</BaseLayout>

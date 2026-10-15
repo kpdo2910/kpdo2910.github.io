@@ -1,0 +1,178 @@
+---
+import BackToTop from '../../components/BackToTop.astro';
+import ExperienceTimeline from '../../components/ExperienceTimeline.astro';
+import Icon from '../../components/Icon.astro';
+import SocialLinks from '../../components/SocialLinks.astro';
+import { CERTIFICATES, EDUCATION, SKILLS } from '../../data/about.js';
+import { EXPERIENCE } from '../../data/experience.js';
+import { formatYearMonth } from '../../i18n/format.js';
+import { localeStaticPaths, localized, useTranslations } from '../../i18n/utils.js';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export function getStaticPaths() {
+  return localeStaticPaths();
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const [bio, bioMore] = t.about.bio;
+
+// Language logos (src/assets/skills/*.svg, see SKILLS): only their path data is used, drawn in
+// the accent color so they follow the light/dark theme.
+const logoFiles = import.meta.glob('../../assets/skills/*.svg', { query: '?raw', import: 'default', eager: true });
+const logoPath = (icon) => {
+  const svg = logoFiles[`../../assets/skills/${icon}.svg`];
+  return svg?.match(/<path[^>]*\sd="([^"]+)"/)?.[1];
+};
+const skills = SKILLS.map((skill) => ({
+  name: skill.name,
+  note: localized(skill.note, locale),
+  logo: skill.icon ? logoPath(skill.icon) : null,
+  glyph: skill.glyph ?? null,
+}));
+
+const education = EDUCATION.map((item) => ({
+  school: localized(item.school, locale),
+  degree: localized(item.degree, locale),
+  place: localized(item.place, locale),
+  note: localized(item.note, locale),
+  period: item.start
+    ? [item.start, item.end].filter(Boolean).map((value) => formatYearMonth(value, locale)).join(' — ')
+    : null,
+}));
+
+const certificates = CERTIFICATES.map((item) => ({
+  name: localized(item.name, locale),
+  meta: [localized(item.issuer, locale), item.date && formatYearMonth(item.date, locale), localized(item.note, locale)]
+    .filter(Boolean)
+    .join(' · '),
+  url: item.url,
+}));
+---
+<BaseLayout locale={locale} title={t.about.title} description={bio} path="/about/" active="about">
+  <section class="page-head about-head">
+    <h1 class="page-title">{t.about.title}</h1>
+    <p class="about-bio">{bio}</p>
+    <p class="about-bio is-muted">{bioMore}</p>
+    <ul class="ui facts">
+      <li class="fact">
+        <Icon name="pin" />
+        <span>{t.about.facts.place}</span>
+      </li>
+      <li class="fact">
+        <Icon name="globe" />
+        <span>{t.about.facts.languages}</span>
+      </li>
+    </ul>
+    <SocialLinks locale={locale} showCv />
+  </section>
+
+  <section id="skills" class="about-section" aria-labelledby="skills-title">
+    <h2 id="skills-title" class="mono label section-label">{t.about.skillsTitle}</h2>
+    <ul class="skill-grid">
+      {
+        skills.map((skill) => (
+          <li class="skill-card">
+            {skill.logo ? (
+              <span class="skill-logo" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" focusable="false">
+                  <path d={skill.logo} />
+                </svg>
+              </span>
+            ) : (
+              skill.glyph && (
+                <span class="skill-logo" aria-hidden="true">
+                  <Icon name={skill.glyph} size={22} />
+                </span>
+              )
+            )}
+            <span class="skill-text">
+              <span class="skill-name">{skill.name}</span>
+              <span class="mono">{skill.note}</span>
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section id="experience" class="xp-section" aria-labelledby="experience-title">
+    <h2 id="experience-title" class="mono label section-label">{t.about.experience}</h2>
+    <ExperienceTimeline items={EXPERIENCE} locale={locale} />
+  </section>
+
+  {
+    education.length > 0 && (
+      <section id="education" class="xp-section" aria-labelledby="education-title">
+        <h2 id="education-title" class="mono label section-label">
+          {t.about.educationTitle}
+        </h2>
+        <ol class="xp">
+          {education.map((item, index) => (
+            <li
+              class:list={[
+                'xp-item',
+                index % 2 === 0 ? 'xp-left' : 'xp-right',
+                { 'xp-first': index === 0, 'xp-last': index === education.length - 1 },
+              ]}
+            >
+              <span class="xp-marker" aria-hidden="true">
+                <Icon name="graduation" size={15} />
+              </span>
+              <div class="xp-side">
+                {item.period && (
+                  <span class="mono xp-date">
+                    <Icon name="calendar" size={12} />
+                    <em>{item.period}</em>
+                  </span>
+                )}
+                <div class="edu-card">
+                  <span class="xp-company">{item.school}</span>
+                  {item.degree && <span class="ui xp-role">{item.degree}</span>}
+                  {item.place && (
+                    <span class="mono xp-place">
+                      <Icon name="pin" size={12} />
+                      <span>{item.place}</span>
+                    </span>
+                  )}
+                  {item.note && <span class="xp-desc">{item.note}</span>}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+    )
+  }
+
+  {
+    certificates.length > 0 && (
+      <section id="certificates" class="about-section" aria-labelledby="certificates-title">
+        <h2 id="certificates-title" class="mono label section-label">
+          {t.about.certificatesTitle}
+        </h2>
+        <ul class="cert-list">
+          {certificates.map((item) => (
+            <li class="cert-row">
+              <span class="cert-icon" aria-hidden="true">
+                <Icon name="award" size={15} />
+              </span>
+              <div class="cert-body">
+                <span class="cert-name">{item.name}</span>
+                {item.meta && <span class="mono">{item.meta}</span>}
+              </div>
+              {item.url && (
+                <a href={item.url} class="ui ulink cert-link">
+                  <span>{t.about.viewCredential}</span>
+                  <Icon name="arrow-up-right" size={12} />
+                </a>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <BackToTop slot="overlay" locale={locale} />
+</BaseLayout>

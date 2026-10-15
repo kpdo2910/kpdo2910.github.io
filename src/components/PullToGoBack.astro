@@ -1,0 +1,121 @@
+---
+// Phone layout only, like Threads: at the end of a post, keep pulling up and a ring draws
+// itself around a back arrow at the bottom; once it fills, letting go returns to the previous
+// page (or to `fallback`, the blog list, when the post was opened directly). Letting go earlier
+// cancels. Gesture only: the "← Blog" link and the browser's back button do the same.
+const { fallback } = Astro.props;
+---
+<div class="pull-back" data-pull-back data-fallback={fallback} aria-hidden="true">
+  <svg class="pull-back-ring" viewBox="0 0 40 40" width="40" height="40">
+    <path d="M20 38 A18 18 0 0 1 20 2" pathLength="1"></path>
+    <path d="M20 38 A18 18 0 0 0 20 2" pathLength="1"></path>
+  </svg>
+  <svg class="pull-back-arrow" viewBox="0 0 24 24" width="18" height="18">
+    <path d="M15 6l-6 6 6 6"></path>
+  </svg>
+</div>
+
+<script>
+  const indicator = document.querySelector('[data-pull-back]');
+  const page = document.querySelector('.page');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const phone = window.matchMedia('(max-width: 719px)');
+  // How far to pull (px) before letting go goes back, and how far the page follows the finger.
+  const THRESHOLD = 110;
+  const MAX_SHIFT = 64;
+
+  let tracking = false;
+  let pulling = false;
+  let armed = false;
+  let lastY = 0;
+  let originY = 0;
+
+  const atBottom = () =>
+    window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+
+  function render(distance) {
+    indicator.style.setProperty('--progress', Math.min(distance / THRESHOLD, 1).toFixed(3));
+    indicator.classList.toggle('is-armed', armed);
+    if (!reduceMotion.matches) page.style.transform = `translateY(${-Math.min(distance * 0.4, MAX_SHIFT)}px)`;
+  }
+
+  function reset(animate) {
+    pulling = false;
+    armed = false;
+    indicator.classList.remove('is-pulling', 'is-armed');
+    if (animate && page.style.transform) {
+      page.animate([{ transform: page.style.transform }, { transform: 'none' }], {
+        duration: 260,
+        easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+      });
+    }
+    page.style.transform = '';
+  }
+
+  function goBack() {
+    let fromThisSite = false;
+    try {
+      fromThisSite = new URL(document.referrer).origin === location.origin;
+    } catch {}
+    if (fromThisSite && history.length > 1) history.back();
+    else location.href = indicator.dataset.fallback;
+  }
+
+  document.addEventListener(
+    'touchstart',
+    (event) => {
+      if (!phone.matches || event.touches.length !== 1 || document.querySelector('dialog[open]')) return;
+      tracking = true;
+      lastY = event.touches[0].clientY;
+    },
+    { passive: true },
+  );
+
+  document.addEventListener(
+    'touchmove',
+    (event) => {
+      if (!tracking) return;
+      const y = event.touches[0].clientY;
+      if (!pulling) {
+        // Starts the moment the page is at its end and the finger keeps pushing up.
+        if (atBottom() && y < lastY) {
+          pulling = true;
+          originY = lastY;
+          indicator.classList.add('is-pulling');
+        } else {
+          lastY = y;
+          return;
+        }
+      }
+      const distance = originY - y;
+      if (distance <= 0) {
+        // Back below where the pull began: hand scrolling back to the browser.
+        reset(false);
+        lastY = y;
+        return;
+      }
+      event.preventDefault();
+      const nowArmed = distance >= THRESHOLD;
+      // A short buzz when it arms (Android); browsers refuse it before the first tap on the page.
+      if (nowArmed && !armed && navigator.userActivation?.hasBeenActive) navigator.vibrate?.(8);
+      armed = nowArmed;
+      render(distance);
+    },
+    { passive: false },
+  );
+
+  const release = () => {
+    if (!tracking) return;
+    tracking = false;
+    if (!pulling) return;
+    if (armed) goBack();
+    else reset(true);
+  };
+  document.addEventListener('touchend', release);
+  document.addEventListener('touchcancel', release);
+
+  // Coming back to this page from the back/forward cache: start clean.
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) reset(false);
+  });
+</script>

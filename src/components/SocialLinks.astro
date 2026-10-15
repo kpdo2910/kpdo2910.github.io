@@ -1,0 +1,43 @@
+---
+import Icon from './Icon.astro';
+import { SITE } from '../data/site.js';
+import { localizePath, useTranslations } from '../i18n/utils.js';
+
+const { locale, showCv = false, showRss = false } = Astro.props;
+const t = useTranslations(locale);
+---
+<div class="ui social-links">
+  {
+    showCv && SITE.cv && (
+      <a
+        href={localizePath(SITE.cv, locale)}
+        class="sbtn"
+        download={`Do-Kim-Phong-CV-${locale}.pdf`}
+        data-astro-prefetch="false"
+      >
+        <Icon name="download" />
+        <span>{t.about.cv}</span>
+      </a>
+    )
+  }
+  <a href={SITE.github} class="sbtn" rel="me">
+    <Icon name="code" />
+    <span>GitHub</span>
+  </a>
+  <a href={SITE.linkedin} class="sbtn" rel="me">
+    <Icon name="link" />
+    <span>LinkedIn</span>
+  </a>
+  <a href={`mailto:${SITE.email}`} class="sbtn">
+    <Icon name="mail" />
+    <span>{t.email}</span>
+  </a>
+  {
+    showRss && (
+      <a href={localizePath('/feed.xml', locale)} class="sbtn">
+        <Icon name="rss" />
+        <span>RSS</span>
+      </a>
+    )
+  }
+</div>

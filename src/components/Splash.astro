@@ -1,0 +1,78 @@
+---
+import { SITE } from '../data/site.js';
+import { useTranslations } from '../i18n/utils.js';
+
+// Intro from the design's "Splash" artboard: a rule draws, the name rises letter by letter,
+// then the panel lifts like a curtain with the accent veil right behind it, revealing the page.
+// BaseLayout's head script decides whether it plays (html.has-splash): only when the home page
+// is the first page of the visit, and never with reduced motion. Any click, tap or key skips it.
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+
+let index = 0;
+const words = SITE.name.split(' ').map((word) => [...word].map((char) => ({ char, i: index++ })));
+---
+<div class="splash" data-splash-screen aria-hidden="true">
+  <div class="splash-veil"></div>
+  <div class="splash-panel">
+    <div class="splash-stage">
+      <div class="splash-rule"></div>
+      <p class="splash-name">
+        {
+          words.map((chars) => (
+            <span class="splash-word">
+              {chars.map(({ char, i }) => (
+                <span class="splash-ch" style={`--i: ${i}`}>
+                  {char}
+                </span>
+              ))}
+            </span>
+          ))
+        }
+      </p>
+      <p class="mono splash-label">{t.home.kicker}</p>
+    </div>
+    <span class="mono splash-skip">
+      <span class="splash-skip-mouse">{t.splash.skip}</span>
+      <span class="splash-skip-touch">{t.splash.skipTouch}</span>
+    </span>
+  </div>
+</div>
+
+<script>
+  const root = document.documentElement;
+  const splash = document.querySelector('[data-splash-screen]');
+
+  if (splash && root.classList.contains('has-splash')) {
+    // The curtain is gone at 80% of the 4.4 s timeline; the rest of it is idle.
+    const CURTAIN_GONE = 3550;
+    let timer = 0;
+
+    const end = () => {
+      clearTimeout(timer);
+      document.removeEventListener('keydown', skip, true);
+      root.classList.remove('has-splash', 'splash-waiting', 'splash-skipping');
+      splash.remove();
+    };
+    function skip() {
+      if (root.classList.contains('splash-skipping')) return;
+      root.classList.add('splash-skipping');
+      clearTimeout(timer);
+      setTimeout(end, 220);
+    }
+
+    splash.addEventListener('click', skip);
+    document.addEventListener('keydown', skip, true);
+
+    // Hold the timeline until the display font is in (at most 1.2 s), so the name doesn't
+    // switch typefaces halfway through rising.
+    Promise.race([document.fonts.load('500 64px Newsreader'), new Promise((done) => setTimeout(done, 1200))])
+      .catch(() => {})
+      .finally(() => {
+        root.classList.remove('splash-waiting');
+        if (!root.classList.contains('splash-skipping')) timer = setTimeout(end, CURTAIN_GONE);
+      });
+  } else {
+    splash?.remove();
+  }
+</script>

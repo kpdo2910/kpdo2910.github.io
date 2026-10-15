@@ -1,0 +1,109 @@
+---
+import Dialog from './Dialog.astro';
+import Icon from './Icon.astro';
+import { formatDuration, formatPeriod, monthsWorked } from '../i18n/format.js';
+import { localized, useTranslations } from '../i18n/utils.js';
+
+// Jobs alternate left and right of a center line; on phones they stack on one side.
+// Each card opens a dialog with the job's highlights.
+const { items, locale } = Astro.props;
+const t = useTranslations(locale);
+
+const jobs = items.map((job) => {
+  const months = monthsWorked(job.start, job.end);
+  return {
+    ...job,
+    dialogId: `xp-${job.id}`,
+    period: formatPeriod(job.start, job.end, t.about.present, locale),
+    duration: months ? formatDuration(months, locale) : null,
+    company: localized(job.company, locale),
+    role: localized(job.role, locale),
+    place: localized(job.place, locale),
+    desc: localized(job.desc, locale),
+    highlights: localized(job.highlights, locale) ?? [],
+  };
+});
+---
+<ol class="xp">
+  {
+    jobs.map((job, index) => (
+      <li
+        class:list={[
+          'xp-item',
+          index % 2 === 0 ? 'xp-left' : 'xp-right',
+          { 'xp-first': index === 0, 'xp-last': index === jobs.length - 1 },
+        ]}
+      >
+        <span class="xp-marker" aria-hidden="true">
+          <Icon name="briefcase" size={15} />
+        </span>
+        <div class="xp-side">
+          <span class="mono xp-date">
+            <Icon name="calendar" size={12} />
+            <em>{job.period}</em>
+            {job.duration && <span>{job.duration}</span>}
+          </span>
+          <button
+            type="button"
+            class="xp-card"
+            aria-haspopup="dialog"
+            aria-controls={job.dialogId}
+            data-dialog-open={job.dialogId}
+          >
+            <span class="xp-company">{job.company}</span>
+            <span class="ui xp-role">{job.role}</span>
+            {job.place && (
+              <span class="mono xp-place">
+                <Icon name="pin" size={12} />
+                <span>{job.place}</span>
+              </span>
+            )}
+            <span class="xp-desc">{job.desc}</span>
+            <span class="ui card-more">
+              <span>{t.readMore}</span>
+              <Icon name="arrow-right" size={13} />
+            </span>
+          </button>
+        </div>
+      </li>
+    ))
+  }
+</ol>
+
+{
+  jobs.map((job) => (
+    <Dialog
+      id={job.dialogId}
+      title={job.company}
+      locale={locale}
+      links={job.url ? [{ label: t.about.viewCompany, url: job.url }] : []}
+    >
+      <Fragment slot="meta">
+        <span class="modal-role">{job.role}</span>
+        {job.place && (
+          <span class="mono xp-place">
+            <Icon name="pin" size={12} />
+            <span>{job.place}</span>
+          </span>
+        )}
+        <span class="mono xp-date modal-date">
+          <Icon name="calendar" size={12} />
+          <em>{job.period}</em>
+          {job.duration && <span>{job.duration}</span>}
+        </span>
+      </Fragment>
+
+      <span class="chips">{job.tags.map((tag) => <span class="chip">{tag}</span>)}</span>
+      {job.highlights.length > 0 && (
+        <div class="modal-section">
+          <h4 class="mono label modal-label">{t.highlights}</h4>
+          <ul class="modal-bullets">
+            {job.highlights.map((highlight) => (
+              <li>{highlight}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </Dialog>
+  ))
+}

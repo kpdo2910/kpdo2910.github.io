@@ -1,0 +1,233 @@
+---
+// The CV as an A4 page. integrations/cv-pdf.js prints it to /cv.pdf (and /ja/cv.pdf, /vi/cv.pdf),
+// which the "Download CV" button on the About page links to. It is built from the same data as
+// the site, so it only shows what the site shows: no phone number, birth date or photo.
+import { CERTIFICATES, EDUCATION, FRAMEWORKS, LANGUAGES, SKILLS, TOOLS } from '../../data/about.js';
+import { EXPERIENCE } from '../../data/experience.js';
+import { PROJECTS } from '../../data/projects.js';
+import { SITE } from '../../data/site.js';
+import { formatDuration, formatPeriod, formatYearMonth, monthsWorked } from '../../i18n/format.js';
+import { localeStaticPaths, localized, localizePath, useTranslations } from '../../i18n/utils.js';
+import { FONTS } from '../../styles/fonts.js';
+import '../../styles/tokens.css';
+import '../../styles/cv.css';
+
+export function getStaticPaths() {
+  return localeStaticPaths();
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const period = (start, end) => formatPeriod(start, end, t.about.present, locale);
+const bareUrl = (url) => url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+
+const siteUrl = new URL(localizePath('/', locale), Astro.site).href;
+const contacts = [
+  { label: SITE.email, href: `mailto:${SITE.email}` },
+  { label: bareUrl(siteUrl), href: siteUrl },
+  { label: bareUrl(SITE.github), href: SITE.github },
+  { label: bareUrl(SITE.linkedin), href: SITE.linkedin },
+];
+const headline = [localized(EXPERIENCE[0].role, locale), t.about.facts.place].join(' · ');
+const updated = t.cv.updated(formatYearMonth(new Date().toISOString().slice(0, 7), locale));
+
+const skills = [
+  { label: t.about.skillsTitle, items: SKILLS.map((skill) => skill.name) },
+  { label: t.cv.frameworks, items: FRAMEWORKS },
+  { label: t.cv.tools, items: TOOLS },
+];
+
+// A job lists the projects built there (`projects` in experience.js). A job without projects
+// shows its own highlights instead.
+const jobs = EXPERIENCE.map((job) => {
+  const months = monthsWorked(job.start, job.end);
+  const projects = PROJECTS.filter((project) => job.projects?.includes(project.id)).map((project) => ({
+    title: localized(project.title, locale),
+    period: project.start ? period(project.start, project.end) : null,
+    tags: project.tags,
+    summary: localized(project.summary, locale),
+    highlights: localized(project.highlights, locale) ?? [],
+  }));
+  return {
+    company: localized(job.company, locale),
+    role: localized(job.role, locale),
+    place: localized(job.place, locale),
+    // "Sep 2025 — Present (1 yr 2 mos)"; Japanese uses full-width brackets, so no space before them.
+    period: [period(job.start, job.end), months && formatDuration(months, locale)]
+      .filter(Boolean)
+      .join(locale === 'ja' ? '' : ' '),
+    desc: localized(job.desc, locale),
+    highlights: projects.length > 0 ? [] : (localized(job.highlights, locale) ?? []),
+    projects,
+  };
+});
+
+const education = EDUCATION.map((item) => ({
+  school: localized(item.school, locale),
+  degree: localized(item.degree, locale),
+  period: item.start ? [item.start, item.end].filter(Boolean).map((value) => formatYearMonth(value, locale)).join(' — ') : null,
+}));
+
+const certificates = CERTIFICATES.map((item) => ({
+  name: localized(item.name, locale),
+  date: item.date ? formatYearMonth(item.date, locale) : null,
+  meta: [localized(item.issuer, locale), localized(item.note, locale)].filter(Boolean).join(' · '),
+}));
+
+const languages = LANGUAGES.map((item) => ({
+  name: localized(item.name, locale),
+  level: localized(item.level, locale),
+}));
+---
+<!doctype html>
+<html lang={locale} data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>{`${SITE.fullName} — ${t.cv.title}`}</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href={FONTS} />
+  </head>
+  <body>
+    <nav class="cv-toolbar">
+      <a href={localizePath(SITE.cv, locale)} download={`Do-Kim-Phong-CV-${locale}.pdf`}>{t.cv.download}</a>
+    </nav>
+
+    <main class="cv">
+      <header class="cv-head">
+        <div>
+          <h1 class="cv-name">{SITE.fullName}</h1>
+          <p class="cv-headline">{headline}</p>
+        </div>
+        <p class="cv-updated">{updated}</p>
+        <ul class="cv-contacts">
+          {
+            contacts.map((contact) => (
+              <li>
+                <a href={contact.href}>{contact.label}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </header>
+
+      <section class="cv-section">
+        <h2>{t.cv.summary}</h2>
+        {t.about.bio.map((paragraph) => <p class="cv-summary">{paragraph}</p>)}
+      </section>
+
+      <section class="cv-section">
+        <h2>{t.cv.skills}</h2>
+        <dl class="cv-pairs">
+          {
+            skills.map((row) => (
+              <Fragment>
+                <dt>{row.label}</dt>
+                <dd>{row.items.join(', ')}</dd>
+              </Fragment>
+            ))
+          }
+        </dl>
+      </section>
+
+      <section class="cv-section">
+        <h2>{t.cv.experience}</h2>
+        {
+          jobs.map((job) => (
+            <article class="cv-job">
+              <div class="cv-job-head">
+                <div class="cv-row">
+                  <h3 class="cv-company">{job.company}</h3>
+                  <span class="cv-date">{job.period}</span>
+                </div>
+                <p>
+                  <span class="cv-role">{job.role}</span>
+                  {job.place && <span class="cv-muted"> · {job.place}</span>}
+                </p>
+                {job.desc && <p class="cv-muted">{job.desc}</p>}
+              </div>
+              {job.highlights.length > 0 && (
+                <ul class="cv-bullets">
+                  {job.highlights.map((highlight) => (
+                    <li>{highlight}</li>
+                  ))}
+                </ul>
+              )}
+              {job.projects.map((project) => (
+                <div class="cv-project">
+                  <div class="cv-row">
+                    <div class="cv-title-group">
+                      <h4 class="cv-project-title">{project.title}</h4>
+                      <span class="cv-tags">{project.tags.join(' · ')}</span>
+                    </div>
+                    {project.period && <span class="cv-date">{project.period}</span>}
+                  </div>
+                  {project.summary && <p class="cv-muted cv-project-summary">{project.summary}</p>}
+                  {project.highlights.length > 0 && (
+                    <ul class="cv-bullets">
+                      {project.highlights.map((highlight) => (
+                        <li>{highlight}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </article>
+          ))
+        }
+      </section>
+
+      <!-- Short sections side by side, so the CV stays at two pages. -->
+      <div class="cv-columns">
+        <section class="cv-section">
+          <h2>{t.about.educationTitle}</h2>
+          {
+            education.map((item) => (
+              <div class="cv-item">
+                <div class="cv-row">
+                  <h3 class="cv-item-title">{item.school}</h3>
+                  {item.period && <span class="cv-date">{item.period}</span>}
+                </div>
+                {item.degree && <p class="cv-role">{item.degree}</p>}
+              </div>
+            ))
+          }
+        </section>
+
+        <div>
+          <section class="cv-section">
+            <h2>{t.about.certificatesTitle}</h2>
+            {
+              certificates.map((item) => (
+                <div class="cv-item">
+                  <div class="cv-row">
+                    <h3 class="cv-item-title">{item.name}</h3>
+                    {item.date && <span class="cv-date">{item.date}</span>}
+                  </div>
+                  {item.meta && <p class="cv-muted">{item.meta}</p>}
+                </div>
+              ))
+            }
+          </section>
+
+          <section class="cv-section">
+            <h2>{t.cv.languages}</h2>
+            <dl class="cv-pairs">
+              {
+                languages.map((item) => (
+                  <Fragment>
+                    <dt>{item.name}</dt>
+                    <dd>{item.level}</dd>
+                  </Fragment>
+                ))
+              }
+            </dl>
+          </section>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

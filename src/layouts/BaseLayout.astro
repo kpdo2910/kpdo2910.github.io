@@ -1,0 +1,127 @@
+---
+import '../styles/tokens.css';
+import '../styles/global.css';
+import '../styles/prose.css';
+import transitionsCss from '../styles/transitions.css?raw';
+import transitionsJs from '../scripts/page-transitions.js?raw';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import Splash from '../components/Splash.astro';
+import TabBar from '../components/TabBar.astro';
+import { SITE } from '../data/site.js';
+import { FONTS } from '../styles/fonts.js';
+import { DEFAULT_LOCALE, LOCALES, LOCALE_META } from '../i18n/ui.js';
+import { localizePath, useTranslations } from '../i18n/utils.js';
+
+// `path` is the page without its language prefix ('/blog/'); the language switcher and
+// hreflang links build the other versions from it. `alternates` lists the languages
+// that really have this page (a blog post may not be translated).
+const {
+  locale = DEFAULT_LOCALE,
+  title,
+  description,
+  path = '/',
+  active,
+  current = true,
+  alternates = LOCALES,
+  canonicalPath,
+  ogType = 'website',
+  noindex = false,
+  // The home page passes this to show the intro splash.
+  splash = false,
+} = Astro.props;
+
+const t = useTranslations(locale);
+// Inlined in <head> (see the note in transitions.css); its comments don't need to ship.
+const inlineTransitions = transitionsCss.replace(/\/\*[\s\S]*?\*\//g, '').trim();
+const pageTitle = title ? `${title} — ${SITE.name}` : SITE.name;
+const canonical = new URL(canonicalPath ?? localizePath(path, locale), Astro.site);
+const absolute = (code) => new URL(localizePath(path, code), Astro.site);
+---
+<!doctype html>
+<html lang={locale} data-splash={splash ? '' : undefined}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{pageTitle}</title>
+    {description && <meta name="description" content={description} />}
+    {noindex && <meta name="robots" content="noindex" />}
+    {!noindex && <link rel="canonical" href={canonical} />}
+    {alternates.map((code) => <link rel="alternate" hreflang={code} href={absolute(code)} />)}
+    {alternates.includes(DEFAULT_LOCALE) && <link rel="alternate" hreflang="x-default" href={absolute(DEFAULT_LOCALE)} />}
+    <link rel="alternate" type="application/rss+xml" title={SITE.name} href={localizePath('/feed.xml', locale)} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:title" content={pageTitle} />
+    {description && <meta property="og:description" content={description} />}
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={LOCALE_META[locale].ogLocale} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="theme-color" content="#F6EFE5" />
+
+    <!-- Before anything is painted: pick the theme (so dark mode never flashes light) and
+         decide whether the intro splash plays. -->
+    <script is:inline>
+      (function () {
+        var theme;
+        try {
+          theme = localStorage.getItem('theme');
+        } catch (e) {}
+        if (theme !== 'light' && theme !== 'dark') {
+          theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.dataset.theme = theme;
+        if (theme === 'dark') {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#131110');
+        }
+
+        // The intro splash plays once: when the home page is the first page of this visit.
+        var firstPage = false;
+        try {
+          firstPage = !sessionStorage.getItem('visited');
+          sessionStorage.setItem('visited', '1');
+        } catch (e) {}
+        var root = document.documentElement;
+        if (firstPage && root.hasAttribute('data-splash') && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          root.classList.add('has-splash', 'splash-waiting');
+        }
+      })();
+    </script>
+    <noscript>
+      <style>
+        .theme-toggle { display: none; }
+        /* The language list can't open without JavaScript, so leave it open. */
+        .lang-switch::before { height: calc(34px + var(--lang-count) * 30px); }
+        .lang-options { visibility: visible; }
+        .lang-btn { opacity: 1; transform: none; }
+      </style>
+    </noscript>
+    <style is:inline set:html={inlineTransitions}></style>
+    <script is:inline set:html={transitionsJs}></script>
+    <!-- Hold the first frame until <main> is parsed, so a hero target is there to animate to. -->
+    <link rel="expect" href="#main" blocking="render" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href={FONTS} />
+  </head>
+  <body>
+    {splash && <Splash locale={locale} />}
+    <a href="#main" class="ui skip-link">{t.skip}</a>
+    <Header locale={locale} path={path} active={active} current={current} />
+    <div class="page">
+      <main id="main">
+        <slot />
+      </main>
+      <Footer locale={locale} />
+    </div>
+    <slot name="overlay" />
+    <TabBar locale={locale} active={active} current={current} />
+    <script>
+      import '../scripts/ripple.js';
+    </script>
+  </body>
+</html>

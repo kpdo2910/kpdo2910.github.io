@@ -1,0 +1,26 @@
+---
+import ProjectCard from '../../components/ProjectCard.astro';
+import { PROJECTS } from '../../data/projects.js';
+import { localeStaticPaths, useTranslations } from '../../i18n/utils.js';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export function getStaticPaths() {
+  return localeStaticPaths();
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+---
+<BaseLayout locale={locale} title={t.projects.title} description={t.projects.intro} path="/projects/" active="projects">
+  <section class="page-head">
+    <h1 class="page-title">{t.projects.title}</h1>
+    <p class="page-intro">{t.projects.intro}</p>
+    <p class="page-note">{t.projects.note}</p>
+  </section>
+
+  <section class="projects-list">
+    <div class="card-grid">
+      {PROJECTS.map((project) => <ProjectCard project={project} locale={locale} />)}
+    </div>
+  </section>
+</BaseLayout>

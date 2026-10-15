@@ -1,0 +1,47 @@
+/* Colors and type from the "Portfolio & Blog" design. */
+:root {
+  --bg: #F6EFE5;
+  --fg: #26211C;
+  --muted: #4C4139;
+  --soft: #605B54;
+  --line: rgba(38, 33, 28, 0.13);
+  --surface: rgba(38, 33, 28, 0.035);
+  --accent: #8B4023;
+  --accent-soft: rgba(138, 68, 35, 0.1);
+  --accent-soft2: rgba(138, 68, 35, 0.2);
+
+  --font-serif: 'Newsreader', 'Noto Serif JP', 'Iowan Old Style', Georgia, serif;
+  --font-ui: 'Inter', 'Noto Sans JP', -apple-system, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Noto Sans JP', ui-monospace, SFMono-Regular, monospace;
+
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --bg: #131110;
+  --fg: #F2EDE3;
+  --muted: #C7BDAE;
+  --soft: #B4AFA8;
+  --line: rgba(242, 237, 227, 0.13);
+  --surface: rgba(242, 237, 227, 0.04);
+  --accent: #CA9663;
+  --accent-soft: rgba(200, 151, 97, 0.12);
+  --accent-soft2: rgba(200, 151, 97, 0.22);
+  color-scheme: dark;
+}
+
+/* Without JavaScript nothing sets data-theme, so follow the system setting. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: #131110;
+    --fg: #F2EDE3;
+    --muted: #C7BDAE;
+    --soft: #B4AFA8;
+    --line: rgba(242, 237, 227, 0.13);
+    --surface: rgba(242, 237, 227, 0.04);
+    --accent: #CA9663;
+    --accent-soft: rgba(200, 151, 97, 0.12);
+    --accent-soft2: rgba(200, 151, 97, 0.22);
+    color-scheme: dark;
+  }
+}
